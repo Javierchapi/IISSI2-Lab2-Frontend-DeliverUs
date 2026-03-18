@@ -4,7 +4,7 @@ function getAll() {
 }
 
 function getDetail(id) {
-  return get('/restaurants/:id')
+  return get(`/restaurants/${id}`)
 }
 
 export { getAll, getDetail }
