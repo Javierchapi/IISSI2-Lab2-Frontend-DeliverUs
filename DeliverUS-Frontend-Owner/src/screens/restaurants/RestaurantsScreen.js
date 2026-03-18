@@ -9,36 +9,65 @@ import * as GlobalStyles from '../../styles/GlobalStyles'
 import restaurantLogo from '../../../assets/restaurantLogo.jpeg'
 import { API_BASE_URL } from '@env'
 
+import { AuthorizationContext } from '../../context/AuthorizationContext.js'
+import { showMessage } from 'react-native-flash-message'
+
 export default function RestaurantsScreen({ navigation, route }) {
   const [restaurants, setRestaurants] = useState([])
-
+  const { loggedInUser } = useContext(AuthorizationContext)
   useEffect(() => {
-    console.log('Loading restaurants, please wait 2 seconds')
-    setTimeout(() => {
-      setRestaurants(getAll) // getAll function has to be imported
-      console.log('Restaurants loaded')
-    }, 2000)
-  }, [])
-
+    async function fetchRestaurants() {
+      // Addresses problem 1
+      try {
+        const fetchedRestaurants = await getAll()
+        setRestaurants(fetchedRestaurants)
+      } catch (error) {
+        // Addresses problem 3
+        showMessage({
+          message: `There was an error while retrieving restaurants. ${error} `,
+          type: 'error',
+          style: GlobalStyles.flashStyle,
+          titleStyle: GlobalStyles.flashTextStyle
+        })
+      }
+    }
+    if (loggedInUser) {
+      // Addresses problem 2
+      fetchRestaurants()
+    } else {
+      setRestaurants(null)
+    }
+  }, [loggedInUser]) // Addresses problem 2
 
   const renderRestaurant = ({ item }) => {
     return (
       <ImageCard
-        imageUri={item.logo ? { uri: API_BASE_URL + '/' + item.logo } : restaurantLogo}
+        imageUri={
+          item.logo ? { uri: API_BASE_URL + '/' + item.logo } : restaurantLogo
+        }
         title={item.name}
         onPress={() => {
           navigation.navigate('RestaurantDetailScreen', { id: item.id })
         }}
       >
         <TextRegular numberOfLines={2}>{item.description}</TextRegular>
-        {item.averageServiceMinutes !== null &&
-          <TextSemiBold>Avg. service time: <TextSemiBold textStyle={{ color: GlobalStyles.brandPrimary }}>{item.averageServiceMinutes} min.</TextSemiBold></TextSemiBold>
-        }
-        <TextSemiBold>Shipping: <TextSemiBold textStyle={{ color: GlobalStyles.brandPrimary }}>{item.shippingCosts.toFixed(2)}€</TextSemiBold></TextSemiBold>
+        {item.averageServiceMinutes !== null && (
+          <TextSemiBold>
+            Avg. service time:{' '}
+            <TextSemiBold textStyle={{ color: GlobalStyles.brandPrimary }}>
+              {item.averageServiceMinutes} min.
+            </TextSemiBold>
+          </TextSemiBold>
+        )}
+        <TextSemiBold>
+          Shipping:{' '}
+          <TextSemiBold textStyle={{ color: GlobalStyles.brandPrimary }}>
+            {item.shippingCosts.toFixed(2)}€
+          </TextSemiBold>
+        </TextSemiBold>
       </ImageCard>
     )
   }
-
 
   return (
     <FlatList

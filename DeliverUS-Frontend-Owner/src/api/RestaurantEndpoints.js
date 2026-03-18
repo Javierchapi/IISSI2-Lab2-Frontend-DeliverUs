@@ -4,7 +4,7 @@ function getAll() {
 }
 
 function getDetail(id) {
-  return restaurantsDetailMock[id]
+  return get('/restaurants/:id')
 }
 
 export { getAll, getDetail }

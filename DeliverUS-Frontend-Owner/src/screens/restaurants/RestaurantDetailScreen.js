@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import {
-StyleSheet,
-View,
-FlatList,
-ImageBackground,
-Image,
-Pressable
+  StyleSheet,
+  View,
+  FlatList,
+  ImageBackground,
+  Image,
+  Pressable
 } from 'react-native'
 import { showMessage } from 'react-native-flash-message'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
@@ -20,30 +20,38 @@ import { API_BASE_URL } from '@env'
 export default function RestaurantDetailScreen({ navigation, route }) {
   const [restaurant, setRestaurant] = useState({})
   useEffect(() => {
-    console.log('Loading restaurant, please wait 2 seconds')
-    setTimeout(() => {
-      const fetchedRestaurant = getDetail(route.params.id)
-      setRestaurant(fetchedRestaurant)
-      console.log('Restaurant loaded')
-    }, 2000)
-  }, [])
+    async function fetchRestaurantDetail() {
+      try {
+        const fetchedRestaurant = await getDetail(route.params.id)
+        setRestaurant(fetchedRestaurant)
+      } catch (error) {
+        showMessage({
+          message: `There was an error while retrieving restaurant details. ${error} `,
+          type: 'error',
+          style: GlobalStyles.flashStyle,
+          titleStyle: GlobalStyles.flashTextStyle
+        })
+      }
+    }
 
+    fetchRestaurantDetail()
+  }, [route.params.id])
   const renderHeader = () => {
     return (
       <View>
-      <ImageBackground 
+        <ImageBackground
           source={
             restaurant?.heroImage
               ? {
-                uri: API_BASE_URL + '/' + restaurant.heroImage,
-                cache: 'force-cache'
-              }
+                  uri: API_BASE_URL + '/' + restaurant.heroImage,
+                  cache: 'force-cache'
+                }
               : undefined
           }
           style={styles.imageBackground}
         >
-        <View style={styles.restaurantHeaderContainer}>
-          <TextSemiBold textStyle={styles.textTitle}>
+          <View style={styles.restaurantHeaderContainer}>
+            <TextSemiBold textStyle={styles.textTitle}>
               {restaurant.name}
             </TextSemiBold>
             <Image
@@ -51,9 +59,9 @@ export default function RestaurantDetailScreen({ navigation, route }) {
               source={
                 restaurant.logo
                   ? {
-                    uri: API_BASE_URL + '/' + restaurant.logo,
-                    cache: 'force-cache'
-                  }
+                      uri: API_BASE_URL + '/' + restaurant.logo,
+                      cache: 'force-cache'
+                    }
                   : undefined
               }
             />
@@ -65,8 +73,8 @@ export default function RestaurantDetailScreen({ navigation, route }) {
                 ? restaurant.restaurantCategory.name
                 : ''}
             </TextRegular>
-        </View>
-      </ImageBackground>
+          </View>
+        </ImageBackground>
       </View>
     )
   }
@@ -85,7 +93,7 @@ export default function RestaurantDetailScreen({ navigation, route }) {
         <TextSemiBold textStyle={styles.price}>
           {item.price.toFixed(2)}€
         </TextSemiBold>
-         {!item.availability && (
+        {!item.availability && (
           <TextRegular textStyle={styles.availability}>
             Not available
           </TextRegular>
@@ -93,7 +101,6 @@ export default function RestaurantDetailScreen({ navigation, route }) {
       </ImageCard>
     )
   }
-
 
   return (
     <View style={styles.container}>
